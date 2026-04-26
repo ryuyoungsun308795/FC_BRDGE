@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>현대해상 브릿지 시상금 계산기</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: #f97316;
+      color: #111;
+      padding: 30px;
+    }
+
+    .app {
+      max-width: 760px;
+      margin: auto;
+      background: white;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 30px;
+      font-weight: 900;
+      text-align: center;
+      color: #f97316;
+    }
+
+    label {
+      display: block;
+      font-weight: 900;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      box-sizing: border-box;
+      border: 2px solid #111;
+      border-radius: 8px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: 900;
+      border: none;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      cursor: pointer;
+    }
+
+    .image-btn {
+      background: #dc2626;
+    }
+
+    .result {
+      margin-top: 28px;
+      padding: 24px;
+      border-radius: 14px;
+      background: #fff7ed;
+      border: 3px solid #f97316;
+      text-align: center;
+      font-weight: 900;
+      line-height: 1.7;
+    }
+
+    .result-title {
+      font-size: 26px;
+      margin-bottom: 14px;
+      color: #f97316;
+    }
+
+    .total {
+      font-size: 38px;
+      color: #dc2626;
+      margin: 16px 0;
+    }
+
+    .detail {
+      font-size: 22px;
+    }
+
+    canvas {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>현대해상 브릿지 시상금 계산기</h1>
+
+    <label>1) FC 이름을 입력하세요</label>
+    <input id="fcName" type="text" placeholder="예: 김현대">
+
+    <label>2) 26년 4월 20~30일까지의 주력 실적은 얼마인가요? (천원단위)</label>
+    <input id="aprilSales" type="number" placeholder="예: 200">
+
+    <label>3) 26년 5월 1일부터 10일까지 주력 실적은 얼마인가요? (천원단위)</label>
+    <input id="maySales" type="number" placeholder="예: 200">
+
+    <button onclick="calculateReward()">브릿지 시상 계산하기</button>
+    <button class="image-btn" onclick="makeImage()">FC에게 전달할 이미지 만들기</button>
+
+    <div id="result" class="result">
+      <div class="result-title">결과가 여기에 표시됩니다</div>
+    </div>
+
+    <canvas id="imageCanvas" width="900" height="1200"></canvas>
+  </div>
+
+  <script>
+    function getInReward(april, may) {
+      const base = Math.min(april, may);
+      if (base >= 500) return 3000;
+      if (base >= 400) return 2000;
+      if (base >= 300) return 1500;
+      if (base >= 200) return 800;
+      if (base >= 100) return 200;
+      return 0;
+    }
+
+    function getMainReward(april, may) {
+      const base = Math.min(april, may);
+      if (base >= 500) return 5000;
+      if (base >= 400) return 3200;
+      if (base >= 300) return 2400;
+      if (base >= 200) return 1600;
+      if (base >= 100) return 800;
+      return 0;
+    }
+
+    function getData() {
+      const fcName = document.getElementById("fcName").value.trim();
+      const april = Number(document.getElementById("aprilSales").value);
+      const may = Number(document.getElementById("maySales").value);
+
+      if (!fcName || !april || !may) {
+        alert("모든 값을 입력하세요.");
+        return null;
+      }
+
+      const base = Math.min(april, may);
+      const inReward = getInReward(april, may);
+      const mainReward = getMainReward(april, may);
+      const totalReward = inReward + mainReward;
+
+      return { fcName, april, may, base, inReward, mainReward, totalReward };
+    }
+
+    function calculateReward() {
+      const d = getData();
+      if (!d) return;
+
+      document.getElementById("result").innerHTML = `
+        <div class="result-title">${d.fcName} FC 브릿지 시상 결과</div>
+
+        <div class="detail">
+          4월 실적: ${d.april.toLocaleString()}천원<br>
+          5월 실적: ${d.may.toLocaleString()}천원
+        </div>
+
+        <div class="total">
+          총 ${d.totalReward.toLocaleString()}천원
+        </div>
+
+        <div class="detail">
+          인보험 ${d.inReward.toLocaleString()}천원 / 주력 ${d.mainReward.toLocaleString()}천원
+        </div>
+      `;
+    }
+
+    function makeImage() {
+      const d = getData();
+      if (!d) return;
+
+      const c = document.getElementById("imageCanvas");
+      const ctx = c.getContext("2d");
+
+      ctx.fillStyle = "#fff7ed";
+      ctx.fillRect(0, 0, 900, 1200);
+
+      ctx.fillStyle = "#f97316";
+      ctx.fillRect(0, 0, 900, 210);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 54px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("현대해상", 450, 85);
+
+      ctx.font = "900 48px Arial";
+      ctx.fillText("브릿지 시상금 안내", 450, 155);
+
+      ctx.fillStyle = "#1e3a8a";
+      ctx.font = "900 34px Arial";
+      ctx.fillText("★ FC 전용 시상금 계산 결과 ★", 450, 270);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(60, 310, 780, 170);
+
+      ctx.strokeStyle = "#f97316";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(60, 310, 780, 170);
+
+      ctx.fillStyle = "#dc2626";
+      ctx.font = "900 44px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(`${d.fcName} FC`, 450, 410);
+
+      ctx.fillStyle = "#e0f2fe";
+      ctx.fillRect(60, 520, 780, 200);
+
+      ctx.strokeStyle = "#1e3a8a";
+      ctx.lineWidth = 5;
+      ctx.strokeRect(60, 520, 780, 200);
+
+      ctx.fillStyle = "#1e3a8a";
+      ctx.font = "900 32px Arial";
+      ctx.fillText("4.20~30 주력보종 실적", 400, 590);
+      ctx.fillText("5.1~10 주력보종 실적", 400, 670);
+
+      ctx.fillStyle = "#111";
+      ctx.font = "900 42px Arial";
+      ctx.textAlign = "right";
+      ctx.fillText(`${d.april.toLocaleString()}천원`, 790, 590);
+      ctx.fillText(`${d.may.toLocaleString()}천원`, 790, 670);
+
+      ctx.fillStyle = "#fff000";
+      ctx.fillRect(60, 770, 780, 210);
+
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(60, 770, 780, 210);
+
+      ctx.fillStyle = "#111";
+      ctx.font = "900 40px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("브릿지 시상금 총액", 450, 835);
+
+      ctx.fillStyle = "#dc2626";
+      ctx.font = "900 82px Arial";
+      ctx.fillText(`${d.totalReward.toLocaleString()}천원`, 450, 935);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(60, 1020, 780, 115);
+
+      ctx.strokeStyle = "#dc2626";
+      ctx.lineWidth = 5;
+      ctx.strokeRect(60, 1020, 780, 115);
+
+      ctx.fillStyle = "#111";
+      ctx.font = "900 30px Arial";
+      ctx.fillText(`인보험 ${d.inReward.toLocaleString()}천원`, 450, 1065);
+      ctx.fillText(`주력 ${d.mainReward.toLocaleString()}천원`, 450, 1110);
+
+      const link = document.createElement("a");
+      link.download = `${d.fcName}_브릿지시상금.jpg`;
+      link.href = c.toDataURL("image/jpeg", 0.95);
+      link.click();
+    }
+  </script>
+</body>
+</html>
